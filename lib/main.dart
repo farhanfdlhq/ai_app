@@ -16,7 +16,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Generator Konten',
+      debugShowCheckedModeBanner: false,
+      title: 'AI Penulisan Konten Cepat',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
