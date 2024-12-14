@@ -63,7 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Input Topik
               const Text(
                 "Masukkan Topik Anda:",
                 style: TextStyle(
@@ -89,8 +88,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Dropdown Kategori
               const Text(
                 "Pilih Kategori Konten:",
                 style: TextStyle(
@@ -131,8 +128,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Tombol Generate Konten
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -158,8 +153,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Loading dan Riwayat Konten
               Expanded(
                 child: Consumer<ContentProvider>(
                   builder: (context, provider, _) {
@@ -194,36 +187,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(12),
-                            title: Text(
-                              historyItem['topic'] ?? 'Topik tidak ada',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Menambahkan kategori
-                                Text(
-                                  "Kategori ${historyItem['category'] ?? 'Kategori tidak ada'}",
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                // Konten dengan batasan panjang
-                                Text(
-                                  historyItem['content'] ?? 'Konten tidak ada',
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
                             onTap: () {
-                              // Tampilkan dialog detail konten
                               showDialog(
                                 context: context,
                                 builder: (_) => AlertDialog(
@@ -242,6 +212,54 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               );
                             },
+                            onHover: (isHovered) {
+                              // Logika hover opsional jika diperlukan
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Colors.white,
+                                    Colors.lightBlueAccent
+                                  ],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(12),
+                                title: Text(
+                                  historyItem['topic'] ?? 'Topik tidak ada',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Kategori ${historyItem['category'] ?? 'Tidak ada'}",
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      historyItem['content'] ??
+                                          'Konten tidak ada',
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                                trailing: const Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  color: Colors.blueAccent,
+                                ),
+                              ),
+                            ),
                           ),
                         );
                       },

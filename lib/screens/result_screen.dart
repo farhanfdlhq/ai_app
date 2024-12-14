@@ -6,21 +6,27 @@ import 'package:ai_app/providers/content_provider.dart';
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
 
+  // Fungsi untuk membersihkan dan memformat konten
+  String cleanContent(String content) {
+    // Hapus simbol tidak perlu seperti #, *, dan spasi berlebih
+    String cleaned = content
+        .replaceAll(RegExp(r'#+\s?'), '') // Hapus tanda # di awal
+        .replaceAll('*', '') // Hapus tanda *
+        .replaceAll(RegExp(r'\s{2,}'), ' ') // Hapus spasi berlebih
+        .trim();
+
+    // Format teks headline menjadi Uppercase dan tebal
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'^(.*?)(?=\n)', multiLine: true),
+      (match) => '**${match[0]!.toUpperCase()}**',
+    );
+
+    return cleaned;
+  }
+
   @override
   Widget build(BuildContext context) {
     final contentProvider = Provider.of<ContentProvider>(context);
-
-    // Fungsi untuk memproses teks agar rapi dan bersih
-    String cleanContent(String content) {
-      // 1. Menghapus simbol bintang (*) dan hash (#) yang sering muncul
-      String cleaned = content
-          .replaceAll(RegExp(r'[*#]'), '') // Hapus * dan #
-          .replaceAll(RegExp(r' {2,}'), ' '); // Hapus spasi berlebih
-      // 2. Format bullet point ke tampilan yang lebih rapi
-      cleaned = cleaned.replaceAllMapped(
-          RegExp(r'^\d+\.\s+', multiLine: true), (match) => '• ');
-      return cleaned.trim();
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -58,7 +64,7 @@ class ResultScreen extends StatelessWidget {
                       cleanContent(contentProvider.generatedContent),
                       style: const TextStyle(
                         fontSize: 16,
-                        height: 1.5, // Menambah jarak antar baris
+                        height: 1.6, // Menambah jarak antar baris
                         color: Colors.black87,
                       ),
                       textAlign: TextAlign.justify,
