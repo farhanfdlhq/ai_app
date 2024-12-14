@@ -1,15 +1,29 @@
-import 'package:ai_app/screens/history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ai_app/providers/content_provider.dart';
+import 'history_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String selectedCategory = 'Artikel Umum'; // Default kategori
+  final List<String> categories = [
+    'Artikel Umum',
+    'Caption Media Sosial',
+    'Rangkuman Materi'
+  ];
+  final TextEditingController topicController = TextEditingController();
+
+  @override
   Widget build(BuildContext context) {
+    final contentProvider = Provider.of<ContentProvider>(context);
+
     return Scaffold(
-      // Gradient AppBar dengan warna cerah
       appBar: AppBar(
         title: const Text(
           "🎨 AI Penulisan Konten Cepat",
@@ -28,7 +42,6 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.history, color: Colors.white),
             onPressed: () {
-              // Menavigasi ke halaman riwayat
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const HistoryScreen()),
@@ -37,7 +50,6 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      // Background Gradient
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -51,7 +63,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Judul Input
+              // Input Topik
               const Text(
                 "Masukkan Topik Anda:",
                 style: TextStyle(
@@ -61,8 +73,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              // Input Box dengan dekorasi
               TextField(
+                controller: topicController,
                 style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   filled: true,
@@ -75,16 +87,79 @@ class HomeScreen extends StatelessWidget {
                     borderSide: BorderSide.none,
                   ),
                 ),
-                onSubmitted: (topic) {
-                  // Menghasilkan konten saat topik disubmit
-                  if (topic.isNotEmpty) {
-                    Provider.of<ContentProvider>(context, listen: false)
-                        .generateContent(topic);
-                  }
-                },
               ),
               const SizedBox(height: 16),
-              // Loading Indicator atau Konten Terbaru
+
+              // Dropdown Kategori
+              const Text(
+                "Pilih Kategori Konten:",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 5,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: DropdownButton<String>(
+                  value: selectedCategory,
+                  isExpanded: true,
+                  underline: Container(),
+                  items: categories.map((category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCategory = value!;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Tombol Generate Konten
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    final topic = topicController.text.trim();
+                    if (topic.isNotEmpty) {
+                      Provider.of<ContentProvider>(context, listen: false)
+                          .generateContent(
+                              "$topic - Kategori: $selectedCategory");
+                    }
+                  },
+                  child: const Text(
+                    "Buat Konten",
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Loading dan Riwayat Konten
               Expanded(
                 child: Consumer<ContentProvider>(
                   builder: (context, provider, _) {
@@ -97,86 +172,80 @@ class HomeScreen extends StatelessWidget {
                       );
                     }
 
-                    return provider.history.isEmpty
-                        ? const Center(
-                            child: Text(
-                              "Belum ada konten. Ayo buat sesuatu!",
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                    if (provider.history.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          "Belum ada konten. Ayo buat sesuatu!",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      itemCount: provider.history.length,
+                      itemBuilder: (context, index) {
+                        final reversedHistory =
+                            provider.history.reversed.toList();
+                        final historyItem = reversedHistory[index];
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.all(12),
+                            title: Text(
+                              historyItem['topic'] ?? 'Topik tidak ada',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
-                          )
-                        : ListView.builder(
-                            itemCount: provider.history.length,
-                            itemBuilder: (context, index) {
-                              final historyItem = provider.history[index];
-                              return Card(
-                                elevation: 5,
-                                shadowColor: Colors.blueAccent,
-                                margin: const EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 4),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Menambahkan kategori
+                                Text(
+                                  "Kategori ${historyItem['category'] ?? 'Kategori tidak ada'}",
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey,
+                                  ),
                                 ),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.all(16),
-                                  title: Text(
-                                    historyItem['topic'] ?? '',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: Colors.black87,
+                                const SizedBox(height: 4),
+                                // Konten dengan batasan panjang
+                                Text(
+                                  historyItem['content'] ?? 'Konten tidak ada',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                            onTap: () {
+                              // Tampilkan dialog detail konten
+                              showDialog(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text("Detail Konten"),
+                                  content: SingleChildScrollView(
+                                    child: Text(
+                                      historyItem['content'] ?? '',
                                     ),
                                   ),
-                                  subtitle: Text(
-                                    historyItem['content'] ?? '',
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.black54,
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text("Tutup"),
                                     ),
-                                  ),
-                                  leading: const Icon(Icons.article,
-                                      color: Colors.blueAccent, size: 32),
-                                  onTap: () {
-                                    // Menampilkan detail konten
-                                    showDialog(
-                                      context: context,
-                                      builder: (_) => AlertDialog(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        title: Text(
-                                          historyItem['topic'] ?? '',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        content: SingleChildScrollView(
-                                          child: Text(
-                                            historyItem['content'] ?? '',
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            child: const Text("Tutup"),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
+                                  ],
                                 ),
                               );
                             },
-                          );
+                          ),
+                        );
+                      },
+                    );
                   },
                 ),
               ),
